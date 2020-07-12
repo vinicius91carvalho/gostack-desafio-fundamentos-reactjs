@@ -1,5 +1,5 @@
+/* eslint-disable no-restricted-syntax */
 import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
 
 import filesize from 'filesize';
 
@@ -20,22 +20,41 @@ interface FileProps {
 
 const Import: React.FC = () => {
   const [uploadedFiles, setUploadedFiles] = useState<FileProps[]>([]);
-  const history = useHistory();
 
   async function handleUpload(): Promise<void> {
-    // const data = new FormData();
+    for (const uploadedFile of uploadedFiles) {
+      const formData = new FormData();
 
-    // TODO
+      formData.append('file', uploadedFile.file);
 
-    try {
-      // await api.post('/transactions/import', data);
-    } catch (err) {
-      // console.log(err.response.error);
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        const { data: transactions } = await api.post(
+          '/transactions/import',
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          },
+        );
+        console.log('Transactions: ', transactions);
+      } catch (err) {
+        console.log(err.response.error);
+      }
     }
   }
 
   function submitFile(files: File[]): void {
-    // TODO
+    const filesToUpload = new Array<FileProps>();
+    for (const file of files) {
+      filesToUpload.push({
+        file,
+        name: file.name,
+        readableSize: filesize(file.size),
+      });
+    }
+    setUploadedFiles([...uploadedFiles, ...filesToUpload]);
   }
 
   return (
